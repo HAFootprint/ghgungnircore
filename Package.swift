@@ -7,7 +7,7 @@ let package = Package(
     name: "ghgungnircore",
     defaultLocalization: "en",
     platforms: [
-        .iOS(.v10)
+        .iOS(.v11)
     ],
     products: [
         .library(
