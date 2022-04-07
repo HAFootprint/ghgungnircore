@@ -8,53 +8,60 @@
 import Foundation
 
 public struct GHGlobalConfig {
-    private static let configInfoPlistName  = "GHGlobalConfig-info"
-    private static let rootIdentifier       = "global_config"
+    private static let configJsonName  = "GHGlobalConfig-info"
     
     //MARK: Public
+    public static var bundle: Bundle = .main
+    
     public static var storeLog: Bool {
-        self.getValueFromKey(keySearch: "store_log")
+        if let entity = self.getObjectFromConfigFile() {
+            return entity.storeLocalLog ?? false
+        }
+        
+        return false
     }
     
     public static var showGlobalLog: Bool {
-        self.getValueFromKey(keySearch: "show_global_log")
-    }
-    
-    //MARK: Private
-    private static var bundleDependency: Bundle {
-        if let bundle = Bundle(identifier: "org.cocoapods.ghgungnircore") {
-            return bundle
-        }
-        else if let bundle = Bundle(identifier: "ghgungnircore") {
-            return bundle
+        if let entity = self.getObjectFromConfigFile() {
+            return entity.showGlobalPrint ?? false
         }
         
-        return .main
+        return false
     }
     
-    private static func getValueFromKey(keySearch: String) -> Bool {
-        var sourceIdentifier = false
-        
-        if let dic = self.objectFromConfigDictionaryKey(pr: self.rootIdentifier) as? NSDictionary {
-            let dicFilter = dic.filter { guard let keyDic = $0.key as? String else { return false }
-                return keyDic == keySearch
-            }
-            
-            sourceIdentifier = dicFilter.first?.value as? Bool ?? false
-        }
-        
-        return sourceIdentifier
-    }
-    
-    private static func objectFromConfigDictionaryKey(pr: String) -> Any? {
-        var anyObj: Any?
-        
-        if let path = self.bundleDependency.path(forResource: self.configInfoPlistName, ofType: "plist") {
-            if let dict = NSDictionary(contentsOfFile: path) {
-                anyObj = dict.object(forKey: pr)
+    internal static func getObjectFromConfigFile() -> GHGungnirConfigEntity? {
+        do {
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+            if let theJSONData = try? JSONSerialization.data(
+                withJSONObject: self.objectFromConfigJsonKey(),
+                options: []
+            ) {
+                let decoded = try decoder.decode(GHGungnirConfigEntity.self, from: theJSONData)
+                return decoded
             }
         }
-        
-        return anyObj
+        catch { }
+
+        return nil
+    }
+    
+    private static func objectFromConfigJsonKey() -> NSDictionary {
+        var jsonOptional: NSDictionary?
+
+        if let path = self.bundle.path(forResource: self.configJsonName, ofType: "json") {
+            do {
+                if let data = NSData(contentsOfFile: path) {
+                    jsonOptional = try JSONSerialization.jsonObject(
+                        with: data as Data,
+                        options: JSONSerialization.ReadingOptions.mutableContainers
+                    ) as? NSDictionary
+                }
+            }
+            catch { }
+        }
+
+        return jsonOptional ?? NSDictionary()
     }
 }

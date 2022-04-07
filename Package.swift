@@ -12,15 +12,25 @@ let package = Package(
     products: [
         .library(
             name: "ghgungnircore",
-            targets: ["ghgungnircore"]),
+            targets: [
+                "ghgungnircore"
+            ]
+        ),
     ],
     dependencies: [],
     targets: [
         .target(
             name: "ghgungnircore",
-            dependencies: []),
+            dependencies: [],
+            resources: [
+                .copy("resources/GHGlobalConfig-info.json")
+            ]
+        ),
         .testTarget(
             name: "ghgungnircoreTests",
-            dependencies: ["ghgungnircore"]),
+            dependencies: [
+                "ghgungnircore"
+            ]
+        ),
     ]
 )
