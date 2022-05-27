@@ -12,6 +12,8 @@ import UIKit
 import CoreTelephony
 
 public struct GHDeviceManager {
+    public static let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "No Version."
+    
     public static func getCarrier() -> String {
         let networkInfo = CTTelephonyNetworkInfo()
         let carrier = networkInfo.subscriberCellularProvider
